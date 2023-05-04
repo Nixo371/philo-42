@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nucieda <nucieda@student.42.fr>            +#+  +:+       +#+        */
+/*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:53 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/04 21:24:40 by nucieda          ###   ########.fr       */
+/*   Updated: 2023/05/04 23:25:43 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <stdio.h>
 # include <string.h>
 # include <pthread.h>
+# include <sys/time.h>
 
 typedef struct s_philo
 {
@@ -25,6 +26,7 @@ typedef struct s_philo
 	int				last_eat;
 	int				last_sleep;
 	int				meals;
+	int				dead;
 	pthread_t		th;
 	pthread_mutex_t *left;
 	pthread_mutex_t *right;
