@@ -6,7 +6,7 @@
 /*   By: nucieda <nucieda@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:53 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/04 11:34:39 by nucieda          ###   ########.fr       */
+/*   Updated: 2023/05/04 21:24:40 by nucieda          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,18 +19,28 @@
 # include <string.h>
 # include <pthread.h>
 
-typedef struct s_philosophers {
-	pthread_t	*th;
-	int			*time_since_eat;
-	int			*time_since_sleep;
-	int			num;
-}	t_philosophers;
-
-typedef struct s_forks
+typedef struct s_philo
 {
-	pthread_mutex_t *forks;
-	int				num;
-}	t_forks;
+	int				id;
+	int				last_eat;
+	int				last_sleep;
+	int				meals;
+	pthread_t		th;
+	pthread_mutex_t *left;
+	pthread_mutex_t *right;
+}	t_philo;
+
+typedef struct s_table
+{
+	t_philo 		*philos;
+	pthread_mutex_t	*forks;
+	int				count;
+	int				die;
+	int				eat;
+	int				sleep;
+	int				meals;
+} t_table;
+
 
 
 #endif
