@@ -6,7 +6,7 @@
 /*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:53 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/04 23:25:43 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/18 20:53:23 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@ typedef struct s_philo
 {
 	int				id;
 	int				last_eat;
-	int				last_sleep;
 	int				meals;
 	int				dead;
 	pthread_t		th;
@@ -36,6 +35,9 @@ typedef struct s_table
 {
 	t_philo 		*philos;
 	pthread_mutex_t	*forks;
+	pthread_mutex_t	printer;
+	pthread_mutex_t	death;
+	struct	timeval timer;
 	int				count;
 	int				die;
 	int				eat;
@@ -43,6 +45,19 @@ typedef struct s_table
 	int				meals;
 } t_table;
 
-
+pthread_mutex_t *get_fork(t_table *table, int id, char	sel);
+t_philo *philo_init(t_table *table);
+pthread_mutex_t	*forks_init(t_table *table);
+t_table	*table_init(char *argv[]);
+long int	timeval_to_ms(struct timeval time);
+int	check_delay(struct timeval timer);
+void	p_print(t_philo philo, char *s, t_table *table);
+int		check_dead(t_table *table);
+int	check_death(t_philo *philo, t_table *table);
+int	grab_forks(t_philo *philo, t_table *table);
+int	p_eat(t_philo *philo, t_table *table);
+int	p_sleep(t_philo *philo, t_table *table);
+void	*exist(void	*arg);
+void	start_sim(t_table *table);
 
 #endif

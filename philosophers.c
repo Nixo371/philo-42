@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philosophers.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nucieda <nucieda@student.42.fr>            +#+  +:+       +#+        */
+/*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:39 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/06 21:31:11 by nucieda          ###   ########.fr       */
+/*   Updated: 2023/05/18 21:22:38 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,6 @@ t_philo *philo_init(t_table *table)
 	{
 		philo[i].id = i + 1;
 		philo[i].last_eat = 0;
-		philo[i].last_sleep = 0;
 		philo[i].left = get_fork(table, philo[i].id, 'L');
 		philo[i].right = get_fork(table, philo[i].id, 'R');
 		philo[i].meals = table->meals;
@@ -79,6 +78,8 @@ t_table	*table_init(char *argv[])
 	if (argv[5])
 		table->meals = atoi(argv[5]);
 	table->forks = forks_init(table);
+	pthread_mutex_init(&table->printer, NULL);
+	pthread_mutex_init(&table->death, NULL);
 	table->philos = philo_init(table);
 	return (table);
 }
@@ -100,15 +101,20 @@ int	check_delay(struct timeval timer)
 	long int		start;
 	long int		now;
 
-	gettimeofday(&new, NULL);
 	start = timeval_to_ms(timer);
+	gettimeofday(&new, NULL);
 	now = timeval_to_ms(new);
 	return (now - start);
 }
 
-void	p_print(t_philo philo, char *s, int	ms)
+void	p_print(t_philo philo, char *s, t_table *table)
 {
-	printf("%d\t%d %s", ms, philo.id, s);
+	int	time;
+
+	time = check_delay(table->timer);
+	pthread_mutex_lock(&table->printer);
+	printf("%d\t%d %s", time, philo.id, s);
+	pthread_mutex_unlock(&table->printer);
 }
 
 int		check_dead(t_table *table)
@@ -116,84 +122,76 @@ int		check_dead(t_table *table)
 	int	i;
 
 	i = 0;
+	pthread_mutex_lock(&table->death);
 	while (i < table->count)
 	{
 		if (table->philos[i].dead)
+		{
+			pthread_mutex_unlock(&table->death);
 			return(1);
+		}
 		i++;
 	}
+	pthread_mutex_unlock(&table->death);
 	return (0);
 }
 
-int	check_death(t_philo *philo, int time_to_die, int time)
+int	check_death(t_philo *philo, t_table *table)
 {
-	if (philo->last_eat > time_to_die)
+	int	time_since_start;
+
+	time_since_start = check_delay(table->timer);
+	pthread_mutex_lock(&table->death);
+	if (philo->last_eat < (time_since_start - table->die))
 	{
-		p_print(*philo, "died\n", time);
+		p_print(*philo, "died\n", table);
 		philo->dead = 1;
+		pthread_mutex_unlock(&table->death);
 		return (1);
 	}
+	pthread_mutex_unlock(&table->death);
 	return (0);
 }
 
-int	p_eat(t_philo *philo, int time_to_eat, int	time_to_die, int time)
+int	grab_forks(t_philo *philo, t_table *table)
 {
 	struct timeval	timer;
-	int				clock;
-	pthread_mutex_t	*fork1;
-	pthread_mutex_t	*fork2;
 	
 	gettimeofday(&timer, NULL);
-	if (philo->id % 2)
-	{
-		fork1 = philo->left;
-		fork2 = philo->right;
-	}
-	else
-	{
-		fork1 = philo->right;
-		fork2 = philo->left;
-	}
-	pthread_mutex_lock(fork1);
-	clock = check_delay(timer);
-	philo->last_eat += clock;
-	if (check_death(philo, time_to_die, clock + time))
-		return (clock - time);
-	p_print(*philo, "has taken a fork\n", clock + time);
-	pthread_mutex_lock(fork2);
-	philo->last_eat -= clock;
-	clock = check_delay(timer);
-	philo->last_eat += clock;
-	if (check_death(philo, time_to_die, clock + time))
-		return (clock - time);
-	p_print(*philo, "has taken a fork\n", clock + time);
-	philo->last_eat -= clock;
-	clock = check_delay(timer);
-	philo->last_eat += clock;
-	if (check_death(philo, time_to_die, clock + time))
-		return (clock - time);
-	p_print(*philo, "is eating\n", clock + time);
-	usleep(time_to_eat * 1000);
-	pthread_mutex_unlock(philo->left);
-	pthread_mutex_unlock(philo->right);
-	philo->last_eat = 0;
-	clock = check_delay(timer);
-	return (clock - time);
+	pthread_mutex_lock(philo->left);
+	if (check_death(philo, table))
+		return (0);
+	p_print(*philo, "has taken a fork\n", table);
+	pthread_mutex_lock(philo->right);
+	if (check_death(philo, table))
+		return (0);
+	p_print(*philo, "has taken a fork\n", table);
+	return (1);
 }
 
-int	p_sleep(t_philo *philo, int	time_to_sleep, int time)
+int	p_eat(t_philo *philo, t_table *table)
 {
-	struct timeval	timer;
-	int				clock;
+	if (check_death(philo, table) || !grab_forks(philo, table))
+		return (0);
+	p_print(*philo, "is eating\n", table);
+	usleep(table->eat * 1000);
+	pthread_mutex_unlock(philo->left);
+	pthread_mutex_unlock(philo->right);
+	philo->last_eat += table->eat;
+	return (0);
+}
 
-	gettimeofday(&timer, NULL);
-	clock = check_delay(timer);
-	p_print(*philo, "is sleeping\n", clock + time);
-	usleep(time_to_sleep * 1000);
-	philo->last_eat += time_to_sleep;
-	p_print(*philo, "is thinking\n", clock + time + time_to_sleep);
-	clock = check_delay(timer);
-	return (clock - time);	
+int	p_sleep(t_philo *philo, t_table *table)
+{
+
+	if (check_death(philo, table))
+		return (0);
+	p_print(*philo, "is sleeping\n", table);
+	usleep(table->sleep * 1000);
+	if (check_death(philo, table))
+		return (0);
+	p_print(*philo, "is thinking\n", table);
+	return (0);
 }
 
 void	*exist(void	*arg)
@@ -201,7 +199,6 @@ void	*exist(void	*arg)
 	t_table	*table;
 	struct	timeval timer;
 	int		id;
-	int		clock;
 	int		offset;
 
 	id = **(int **)arg;
@@ -210,16 +207,16 @@ void	*exist(void	*arg)
 	offset = -1;
 	if (table->philos[id].meals == -1)
 		offset = 0;
+	if (id % 2 == 0)
+		usleep(table->eat * 1000);
 	while(table->philos[id].meals != 0)
 	{
-		clock = check_delay(timer);
 		if (check_dead(table))
 			break;
-		p_eat(&table->philos[id], table->eat, table->die, clock);
-		clock = check_delay(timer);
+		p_eat(&table->philos[id], table);
 		if (check_dead(table))
 			break;
-		p_sleep(&table->philos[id], table->sleep, clock);
+		p_sleep(&table->philos[id], table);
 		table->philos[id].meals += offset;
 	}
 	free(*(void **)arg);
@@ -233,6 +230,7 @@ void	start_sim(t_table *table)
 	int	i;
 
 	i = 0;
+	gettimeofday(&table->timer, NULL);
 	while (i < table->count)
 	{
 		id = malloc(2 * sizeof(void *));
