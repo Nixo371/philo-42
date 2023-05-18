@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philosophers.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nucieda <nucieda@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:39 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/04 23:49:25 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/06 21:31:11 by nucieda          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,8 +41,8 @@ t_philo *philo_init(t_table *table)
 		philo[i].id = i + 1;
 		philo[i].last_eat = 0;
 		philo[i].last_sleep = 0;
-		philo[i].left = get_fork(table, philo->id, 'L');
-		philo[i].right = get_fork(table, philo->id, 'R');
+		philo[i].left = get_fork(table, philo[i].id, 'L');
+		philo[i].right = get_fork(table, philo[i].id, 'R');
 		philo[i].meals = table->meals;
 		philo[i].dead = 0;
 		i++;
@@ -140,15 +140,27 @@ int	p_eat(t_philo *philo, int time_to_eat, int	time_to_die, int time)
 {
 	struct timeval	timer;
 	int				clock;
+	pthread_mutex_t	*fork1;
+	pthread_mutex_t	*fork2;
 	
 	gettimeofday(&timer, NULL);
-	pthread_mutex_lock(philo->left);
+	if (philo->id % 2)
+	{
+		fork1 = philo->left;
+		fork2 = philo->right;
+	}
+	else
+	{
+		fork1 = philo->right;
+		fork2 = philo->left;
+	}
+	pthread_mutex_lock(fork1);
 	clock = check_delay(timer);
 	philo->last_eat += clock;
 	if (check_death(philo, time_to_die, clock + time))
 		return (clock - time);
 	p_print(*philo, "has taken a fork\n", clock + time);
-	pthread_mutex_lock(philo->right);
+	pthread_mutex_lock(fork2);
 	philo->last_eat -= clock;
 	clock = check_delay(timer);
 	philo->last_eat += clock;
