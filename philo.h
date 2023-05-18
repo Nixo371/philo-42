@@ -6,7 +6,7 @@
 /*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:53 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/18 20:53:23 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/18 21:33:08 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@ typedef struct s_table
 {
 	t_philo 		*philos;
 	pthread_mutex_t	*forks;
-	pthread_mutex_t	printer;
 	pthread_mutex_t	death;
 	struct	timeval timer;
 	int				count;

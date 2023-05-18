@@ -6,7 +6,7 @@
 /*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:39 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/18 21:22:38 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/18 21:50:24 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,6 @@ t_table	*table_init(char *argv[])
 	if (argv[5])
 		table->meals = atoi(argv[5]);
 	table->forks = forks_init(table);
-	pthread_mutex_init(&table->printer, NULL);
 	pthread_mutex_init(&table->death, NULL);
 	table->philos = philo_init(table);
 	return (table);
@@ -112,9 +111,7 @@ void	p_print(t_philo philo, char *s, t_table *table)
 	int	time;
 
 	time = check_delay(table->timer);
-	pthread_mutex_lock(&table->printer);
 	printf("%d\t%d %s", time, philo.id, s);
-	pthread_mutex_unlock(&table->printer);
 }
 
 int		check_dead(t_table *table)
@@ -245,6 +242,11 @@ void	start_sim(t_table *table)
 	{
 		if (pthread_join(table->philos[i].th, NULL) != 0)
 			exit(6);
+	}
+	while (i < table->count)
+	{
+		if (pthread_mutex_destroy(&table->forks[i]) != 0)
+			exit(7);
 	}
 }
 
