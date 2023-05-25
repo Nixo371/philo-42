@@ -6,7 +6,7 @@
 /*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:39 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/18 21:50:24 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/25 15:47:24 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,6 +139,8 @@ int	check_death(t_philo *philo, t_table *table)
 
 	time_since_start = check_delay(table->timer);
 	pthread_mutex_lock(&table->death);
+	//printf("Time since start: %dms - Last eat: %dms\n", time_since_start, philo->last_eat);
+	//printf("%d < (%d - %d)\n", philo->last_eat, time_since_start, table->die);
 	if (philo->last_eat < (time_since_start - table->die))
 	{
 		p_print(*philo, "died\n", table);
@@ -171,10 +173,10 @@ int	p_eat(t_philo *philo, t_table *table)
 	if (check_death(philo, table) || !grab_forks(philo, table))
 		return (0);
 	p_print(*philo, "is eating\n", table);
+	philo->last_eat = check_delay(table->timer);
 	usleep(table->eat * 1000);
 	pthread_mutex_unlock(philo->left);
 	pthread_mutex_unlock(philo->right);
-	philo->last_eat += table->eat;
 	return (0);
 }
 
@@ -194,13 +196,11 @@ int	p_sleep(t_philo *philo, t_table *table)
 void	*exist(void	*arg)
 {
 	t_table	*table;
-	struct	timeval timer;
 	int		id;
 	int		offset;
 
 	id = **(int **)arg;
 	table = ((t_table **)arg)[1];
-	gettimeofday(&timer, NULL);
 	offset = -1;
 	if (table->philos[id].meals == -1)
 		offset = 0;
