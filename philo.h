@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nucieda <nucieda@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:53 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/25 15:21:31 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/25 18:33:23 by nucieda          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,6 @@ typedef struct s_philo
 	int				id;
 	int				last_eat;
 	int				meals;
-	int				dead;
 	pthread_t		th;
 	pthread_mutex_t *left;
 	pthread_mutex_t *right;
@@ -37,7 +36,7 @@ typedef struct s_table
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	death;
 	struct	timeval timer;
-	int				clock;
+	int				dead;
 	int				count;
 	int				die;
 	int				eat;

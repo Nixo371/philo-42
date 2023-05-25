@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philosophers.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
+/*   By: nucieda <nucieda@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:39 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/25 15:47:24 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/25 18:53:51 by nucieda          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,6 @@ t_philo *philo_init(t_table *table)
 		philo[i].left = get_fork(table, philo[i].id, 'L');
 		philo[i].right = get_fork(table, philo[i].id, 'R');
 		philo[i].meals = table->meals;
-		philo[i].dead = 0;
 		i++;
 	}
 	return (philo);
@@ -77,6 +76,7 @@ t_table	*table_init(char *argv[])
 	table->meals = -1;
 	if (argv[5])
 		table->meals = atoi(argv[5]);
+	table->dead = 0;
 	table->forks = forks_init(table);
 	pthread_mutex_init(&table->death, NULL);
 	table->philos = philo_init(table);
@@ -111,26 +111,15 @@ void	p_print(t_philo philo, char *s, t_table *table)
 	int	time;
 
 	time = check_delay(table->timer);
-	printf("%d\t%d %s", time, philo.id, s);
+	if (s[0] == 'd')
+		usleep(100);
+	if (!check_dead(table))
+		printf("%d\t%d %s", time, philo.id, s);
 }
 
 int		check_dead(t_table *table)
 {
-	int	i;
-
-	i = 0;
-	pthread_mutex_lock(&table->death);
-	while (i < table->count)
-	{
-		if (table->philos[i].dead)
-		{
-			pthread_mutex_unlock(&table->death);
-			return(1);
-		}
-		i++;
-	}
-	pthread_mutex_unlock(&table->death);
-	return (0);
+	return (table->dead);
 }
 
 int	check_death(t_philo *philo, t_table *table)
@@ -138,17 +127,14 @@ int	check_death(t_philo *philo, t_table *table)
 	int	time_since_start;
 
 	time_since_start = check_delay(table->timer);
-	pthread_mutex_lock(&table->death);
-	//printf("Time since start: %dms - Last eat: %dms\n", time_since_start, philo->last_eat);
-	//printf("%d < (%d - %d)\n", philo->last_eat, time_since_start, table->die);
 	if (philo->last_eat < (time_since_start - table->die))
 	{
+		pthread_mutex_lock(&table->death);
 		p_print(*philo, "died\n", table);
-		philo->dead = 1;
+		table->dead = 1;
 		pthread_mutex_unlock(&table->death);
 		return (1);
 	}
-	pthread_mutex_unlock(&table->death);
 	return (0);
 }
 
@@ -159,11 +145,18 @@ int	grab_forks(t_philo *philo, t_table *table)
 	gettimeofday(&timer, NULL);
 	pthread_mutex_lock(philo->left);
 	if (check_death(philo, table))
+	{
+		pthread_mutex_unlock(philo->left);
 		return (0);
+	}
 	p_print(*philo, "has taken a fork\n", table);
 	pthread_mutex_lock(philo->right);
 	if (check_death(philo, table))
+	{
+		pthread_mutex_unlock(philo->left);
+		pthread_mutex_unlock(philo->right);
 		return (0);
+	}
 	p_print(*philo, "has taken a fork\n", table);
 	return (1);
 }
@@ -221,6 +214,13 @@ void	*exist(void	*arg)
 	return (NULL);
 }
 
+void	one_philo(t_table *table)
+{
+	printf("0\t1 has taken a fork\n");
+	usleep(table->die * 1000);
+	printf("%d\t1 died\n", table->die);
+}
+
 void	start_sim(t_table *table)
 {
 	void	**id;
@@ -257,5 +257,8 @@ int main(int argc, char *argv[])
 	if (argc < 5 || argc > 6)
 		return (1);
 	table = table_init(argv);
-	start_sim(table);
+	if (table->count == 1)
+		one_philo(table);
+	else
+		start_sim(table);
 }
