@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philosophers.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nucieda <nucieda@student.42.fr>            +#+  +:+       +#+        */
+/*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:39 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/26 23:25:23 by nucieda          ###   ########.fr       */
+/*   Updated: 2023/05/27 18:19:21 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,16 @@ t_philo *philo_init(t_table *table)
 	{
 		philo[i].id = i + 1;
 		philo[i].last_eat = 0;
-		philo[i].left = get_fork(table, philo[i].id, 'L');
-		philo[i].right = get_fork(table, philo[i].id, 'R');
+		if (philo[i].id % 2)
+		{
+			philo[i].left = get_fork(table, philo[i].id, 'L');
+			philo[i].right = get_fork(table, philo[i].id, 'R');
+		}
+		else
+		{
+			philo[i].left = get_fork(table, philo[i].id, 'R');
+			philo[i].right = get_fork(table, philo[i].id, 'L');
+		}
 		philo[i].meals = table->meals;
 		i++;
 	}
@@ -80,18 +88,14 @@ t_table	*table_init(char *argv[])
 	table->forks = forks_init(table);
 	pthread_mutex_init(&table->death, NULL);
 	table->philos = philo_init(table);
+	if (table->count < 0 || table->die < 0 || table->eat < 0 || table->sleep < 0 || (argv[5] && table->meals < 0))
+		return (NULL);
 	return (table);
 }
 
 long int	timeval_to_ms(struct timeval time)
 {
-	long int	ms;
-
-	ms = 0;
-
-	ms += time.tv_sec * 1000;
-	ms += time.tv_usec / 1000;
-	return (ms);
+	return ((time.tv_sec * 1000) + (time.tv_usec / 1000));
 }
 
 int	check_delay(struct timeval timer)
@@ -108,31 +112,20 @@ int	check_delay(struct timeval timer)
 
 void	p_print(t_philo philo, char *s, t_table *table)
 {
-	int	time;
-
-	time = check_delay(table->timer);
 	if (s[0] == 'd')
 		usleep(100);
-	if (!check_dead(table))
-		printf("%d\t%d %s", time, philo.id, s);
-}
-
-int		check_dead(t_table *table)
-{
-	return (table->dead);
+	if (!table->dead)
+		printf("%d\t%d %s", check_delay(table->timer), philo.id, s);
 }
 
 int	check_death(t_philo *philo, t_table *table)
 {
-	int	time_since_start;
-
-	time_since_start = check_delay(table->timer);
-	if (philo->last_eat < (time_since_start - table->die))
+	if (philo->last_eat < (check_delay(table->timer) - table->die))
 	{
-		pthread_mutex_lock(&table->death);
+		//pthread_mutex_lock(&table->death);
 		p_print(*philo, "died\n", table);
 		table->dead = 1;
-		pthread_mutex_unlock(&table->death);
+		//pthread_mutex_unlock(&table->death);
 		return (1);
 	}
 	return (0);
@@ -140,21 +133,18 @@ int	check_death(t_philo *philo, t_table *table)
 
 int	grab_forks(t_philo *philo, t_table *table)
 {
-	struct timeval	timer;
-	
-	gettimeofday(&timer, NULL);
 	pthread_mutex_lock(philo->left);
 	if (check_death(philo, table))
 	{
-		pthread_mutex_unlock(philo->left);
+		//pthread_mutex_unlock(philo->left);
 		return (0);
 	}
 	p_print(*philo, "has taken a fork\n", table);
 	pthread_mutex_lock(philo->right);
 	if (check_death(philo, table))
 	{
-		pthread_mutex_unlock(philo->left);
-		pthread_mutex_unlock(philo->right);
+		//pthread_mutex_unlock(philo->left);
+		//pthread_mutex_unlock(philo->right);
 		return (0);
 	}
 	p_print(*philo, "has taken a fork\n", table);
@@ -164,7 +154,7 @@ int	grab_forks(t_philo *philo, t_table *table)
 int	p_eat(t_philo *philo, t_table *table)
 {
 	if (check_death(philo, table) || !grab_forks(philo, table))
-		return (0);
+		return (1);
 	p_print(*philo, "is eating\n", table);
 	philo->last_eat = check_delay(table->timer);
 	usleep(table->eat * 1000);
@@ -177,11 +167,11 @@ int	p_sleep(t_philo *philo, t_table *table)
 {
 
 	if (check_death(philo, table))
-		return (0);
+		return (1);
 	p_print(*philo, "is sleeping\n", table);
 	usleep(table->sleep * 1000);
 	if (check_death(philo, table))
-		return (0);
+		return (1);
 	p_print(*philo, "is thinking\n", table);
 	return (0);
 }
@@ -201,12 +191,12 @@ void	*exist(void	*arg)
 		usleep(table->eat * 1000);
 	while(table->philos[id].meals != 0)
 	{
-		if (check_dead(table))
+		if (table->dead)
 			break;
-		p_eat(&table->philos[id], table);
-		if (check_dead(table))
+		if (p_eat(&table->philos[id], table))
 			break;
-		p_sleep(&table->philos[id], table);
+		if (p_sleep(&table->philos[id], table))
+			break;
 		table->philos[id].meals += offset;
 	}
 	free(*(void **)arg);
@@ -258,6 +248,8 @@ int main(int argc, char *argv[])
 	if (argc < 5 || argc > 6)
 		return (1);
 	table = table_init(argv);
+	if (table == NULL)
+		return (0);
 	if (table->count == 1)
 		one_philo(table);
 	else

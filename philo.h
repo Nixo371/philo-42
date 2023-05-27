@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   philo.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: nucieda <nucieda@student.42.fr>            +#+  +:+       +#+        */
+/*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:53 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/25 18:33:23 by nucieda          ###   ########.fr       */
+/*   Updated: 2023/05/27 18:18:19 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,6 @@ t_table	*table_init(char *argv[]);
 long int	timeval_to_ms(struct timeval time);
 int	check_delay(struct timeval timer);
 void	p_print(t_philo philo, char *s, t_table *table);
-int		check_dead(t_table *table);
 int	check_death(t_philo *philo, t_table *table);
 int	grab_forks(t_philo *philo, t_table *table);
 int	p_eat(t_philo *philo, t_table *table);
