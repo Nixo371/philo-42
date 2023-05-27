@@ -6,7 +6,7 @@
 /*   By: nucieda <nucieda@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:39 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/25 18:53:51 by nucieda          ###   ########.fr       */
+/*   Updated: 2023/05/26 23:25:23 by nucieda          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -243,11 +243,12 @@ void	start_sim(t_table *table)
 		if (pthread_join(table->philos[i].th, NULL) != 0)
 			exit(6);
 	}
-	while (i < table->count)
+	while (++i < table->count)
 	{
 		if (pthread_mutex_destroy(&table->forks[i]) != 0)
 			exit(7);
 	}
+	pthread_mutex_destroy(&table->death);
 }
 
 int main(int argc, char *argv[])
@@ -261,4 +262,7 @@ int main(int argc, char *argv[])
 		one_philo(table);
 	else
 		start_sim(table);
+	free(table->forks);
+	free(table->philos);
+	free(table);
 }

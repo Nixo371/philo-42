@@ -4,7 +4,7 @@ SRCS = philosophers.c
 OBJS = $(SRCS:.c=.o)
 
 CC = gcc
-CFLAGS = -Wall -Werror -Wextra
+CFLAGS = -Wall -Werror -Wextra -fsanitize=thread
 
 RM = rm -f
 
