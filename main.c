@@ -6,7 +6,7 @@
 /*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:39 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/27 20:52:45 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/27 21:02:09 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,13 @@ int	check_input(int argc, char *argv[])
 	return (0);
 }
 
+void	one_philo(t_table *table)
+{
+	printf("0 1 has taken a fork\n");
+	usleep(table->die * 1000);
+	printf("%d 1 died\n", table->die);
+}
+
 void	start_sim(t_table *table)
 {
 	void	**id;
@@ -46,17 +53,17 @@ void	start_sim(t_table *table)
 		*(int *)id[0] = i;
 		id[1] = (void *)table;
 		if (pthread_create(&table->philos[i].th, NULL, &exist, id) != 0)
-			exit(5);
+			return ;
 	}
 	while (--i >= 0)
 	{
 		if (pthread_join(table->philos[i].th, NULL) != 0)
-			exit(6);
+			return ;
 	}
 	while (++i < table->count)
 	{
 		if (pthread_mutex_destroy(&table->forks[i]) != 0)
-			exit(7);
+			return ;
 	}
 	pthread_mutex_destroy(&table->death);
 }

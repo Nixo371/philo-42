@@ -6,7 +6,7 @@
 /*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:53 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/27 20:52:55 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/27 20:59:48 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,5 +60,6 @@ void			start_sim(t_table *table);
 void			ft_usleep(long int us, t_philo *philo, t_table *table);
 void			one_philo(t_table *table);
 int				check_input(int argc, char *argv[]);
+int				ft_atoi(const char *ptr);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 20:28:25 by nucieda-          #+#    #+#             */
-/*   Updated: 2023/05/27 20:31:47 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/27 20:57:31 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,13 +73,13 @@ t_table	*table_init(char *argv[])
 	t_table	*table;
 
 	table = malloc(sizeof(t_table));
-	table->count = atoi(argv[1]);
-	table->die = atoi(argv[2]);
-	table->eat = atoi(argv[3]);
-	table->sleep = atoi(argv[4]);
+	table->count = ft_atoi(argv[1]);
+	table->die = ft_atoi(argv[2]);
+	table->eat = ft_atoi(argv[3]);
+	table->sleep = ft_atoi(argv[4]);
 	table->meals = -1;
 	if (argv[5])
-		table->meals = atoi(argv[5]);
+		table->meals = ft_atoi(argv[5]);
 	table->dead = 0;
 	table->forks = forks_init(table);
 	pthread_mutex_init(&table->death, NULL);

@@ -6,7 +6,7 @@
 /*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/27 20:30:13 by nucieda-          #+#    #+#             */
-/*   Updated: 2023/05/27 20:30:23 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/27 20:58:50 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,9 +55,30 @@ void	p_print(t_philo philo, char *s, t_table *table)
 		printf("%d %d %s", time, philo.id, s);
 }
 
-void	one_philo(t_table *table)
+int	ft_atoi(const char *ptr)
 {
-	printf("0 1 has taken a fork\n");
-	usleep(table->die * 1000);
-	printf("%d 1 died\n", table->die);
+	int	i;
+	int	num;
+	int	neg;
+
+	i = 0;
+	num = 0;
+	neg = 1;
+	while (ptr[i] == ' ' || (ptr[i] >= 9 && ptr[i] <= 13))
+		i++;
+	if (ptr[i] == '+')
+		i++;
+	else if (ptr[i] == '-')
+	{
+		neg *= -1;
+		i++;
+	}
+	while (ptr[i] != '\0')
+	{
+		if (ptr[i] < '0' || ptr[i] > '9')
+			return (num * neg);
+		num = (num * 10) + ptr[i] - 48;
+		i++;
+	}
+	return (num * neg);
 }
