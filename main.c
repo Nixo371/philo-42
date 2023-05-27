@@ -6,11 +6,31 @@
 /*   By: nucieda- <nucieda-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 20:13:39 by nucieda           #+#    #+#             */
-/*   Updated: 2023/05/27 20:31:03 by nucieda-         ###   ########.fr       */
+/*   Updated: 2023/05/27 20:52:45 by nucieda-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
+
+int	check_input(int argc, char *argv[])
+{
+	int	i;
+	int	j;
+
+	i = 1;
+	while (i < argc)
+	{
+		j = 0;
+		while (argv[i][j])
+		{
+			if (argv[i][j] < '0' || argv[i][j] > '9')
+				return (1);
+			j++;
+		}
+		i++;
+	}
+	return (0);
+}
 
 void	start_sim(t_table *table)
 {
@@ -47,6 +67,8 @@ int	main(int argc, char *argv[])
 
 	if (argc < 5 || argc > 6)
 		return (1);
+	if (check_input(argc, argv))
+		return (0);
 	table = table_init(argv);
 	if (table == NULL)
 		return (0);
